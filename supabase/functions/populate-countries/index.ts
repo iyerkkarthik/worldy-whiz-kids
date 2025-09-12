@@ -35,13 +35,19 @@ interface POIData {
 }
 
 async function fetchCountries(): Promise<CountryData[]> {
-  const response = await fetch(
-    'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,capitalInfo,latlng,population,area,flags,unMember,independent,status',
-    { 
-      headers: { 'User-Agent': 'NileKidsCountriesApp/1.0' },
-      timeout: 120000 
-    }
-  );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+  
+  try {
+    const response = await fetch(
+      'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,capitalInfo,latlng,population,area,flags,unMember,independent,status',
+      { 
+        headers: { 'User-Agent': 'NileKidsCountriesApp/1.0' },
+        signal: controller.signal
+      }
+    );
+    
+    clearTimeout(timeoutId);
   
   if (!response.ok) {
     throw new Error(`REST Countries API failed: ${response.statusText}`);
@@ -105,22 +111,26 @@ async function fetchCountries(): Promise<CountryData[]> {
 }
 
 async function runSparqlQuery(query: string, retries: number = 3): Promise<any[]> {
-  const url = 'https://query.wikidata.org/sparql';
-  
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(url, {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
+      const params = new URLSearchParams({
+        query,
+        format: 'json'
+      });
+      
+      const response = await fetch(`https://query.wikidata.org/sparql?${params}`, {
         method: 'GET',
         headers: {
           'User-Agent': 'NileKidsCountriesApp/1.0',
           'Accept': 'application/json',
         },
-        body: new URLSearchParams({
-          query,
-          format: 'json'
-        }).toString(),
-        timeout: 60000
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`SPARQL query failed: ${response.statusText}`);

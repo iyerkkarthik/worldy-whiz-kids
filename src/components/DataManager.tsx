@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,9 +55,9 @@ const DataManager = () => {
   };
 
   // Fetch initial counts when component mounts
-  useState(() => {
+  React.useEffect(() => {
     fetchCounts();
-  });
+  }, []);
 
   return (
     <Card className="w-full max-w-md mx-auto">

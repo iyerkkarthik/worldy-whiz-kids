@@ -219,10 +219,24 @@ export default function CountryDetail({ country, onBack, onQuizStart }: CountryD
                   return (
                     <Card key={poi.id} className="text-center hover:shadow-magical transition-smooth">
                       <CardContent className="p-4">
-                        <div className="text-4xl mb-2">
-                          {poi.poi_type === 'landmark' && '🏛️'}
-                          {poi.poi_type === 'mountain' && '⛰️'}
-                          {poi.poi_type === 'forest' && '🌲'}
+                        <div className="mb-4">
+                          {poi.image_url ? (
+                            <img 
+                              src={poi.image_url} 
+                              alt={poi.name}
+                              className="w-20 h-20 rounded-lg object-cover mx-auto shadow-md"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (nextElement) nextElement.style.display = 'block';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`text-4xl ${poi.image_url ? 'hidden' : 'block'}`}>
+                            {poi.poi_type === 'landmark' && '🏛️'}
+                            {poi.poi_type === 'mountain' && '⛰️'}
+                            {poi.poi_type === 'forest' && '🌲'}
+                          </div>
                         </div>
                         <h4 className="font-bold text-lg mb-2">{poi.name}</h4>
                         <p className="text-sm text-muted-foreground mb-3">

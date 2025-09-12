@@ -31,6 +31,7 @@ interface POIData {
   lat?: number;
   lon?: number;
   description?: string;
+  image_url?: string;
   extra?: string;
 }
 
@@ -175,13 +176,14 @@ function parsePointWKT(wkt: string): { lat: number | null, lon: number | null } 
 
 async function fetchTopLandmarksByCountry(): Promise<POIData[]> {
   const query = `
-    SELECT ?country ?iso2 ?countryLabel ?item ?itemLabel ?coord ?sitelinks WHERE {
+    SELECT ?country ?iso2 ?countryLabel ?item ?itemLabel ?coord ?sitelinks ?image WHERE {
       ?country wdt:P31 wd:Q6256.
       OPTIONAL { ?country wdt:P297 ?iso2. }
       ?item wdt:P17 ?country.
       ?item wdt:P31/wdt:P279* ?class .
       VALUES ?class { wd:Q570116 wd:Q9259 wd:Q4989906 wd:Q839954 }
       OPTIONAL { ?item wdt:P625 ?coord. }
+      OPTIONAL { ?item wdt:P18 ?image. }
       ?item wikibase:sitelinks ?sitelinks.
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
@@ -199,6 +201,7 @@ async function fetchTopLandmarksByCountry(): Promise<POIData[]> {
       const name = result.itemLabel?.value;
       const coord = result.coord?.value;
       const sitelinks = parseInt(result.sitelinks?.value || '0');
+      const image = result.image?.value;
       
       if (!iso2 || !name || iso2.length !== 2) continue;
       
@@ -212,6 +215,7 @@ async function fetchTopLandmarksByCountry(): Promise<POIData[]> {
         lat,
         lon,
         sitelinks,
+        image,
       });
     }
     
@@ -227,6 +231,7 @@ async function fetchTopLandmarksByCountry(): Promise<POIData[]> {
           lat: topLandmark.lat,
           lon: topLandmark.lon,
           description: `Famous landmark`,
+          image_url: topLandmark.image,
           extra: `sitelinks:${topLandmark.sitelinks}`,
         });
       }
@@ -241,11 +246,12 @@ async function fetchTopLandmarksByCountry(): Promise<POIData[]> {
 
 async function fetchHighestPointsByCountry(): Promise<POIData[]> {
   const query = `
-    SELECT ?country ?iso2 ?countryLabel ?hp ?hpLabel ?coord WHERE {
+    SELECT ?country ?iso2 ?countryLabel ?hp ?hpLabel ?coord ?image WHERE {
       ?country wdt:P31 wd:Q6256.
       OPTIONAL { ?country wdt:P297 ?iso2. }
       ?country wdt:P610 ?hp.
       OPTIONAL { ?hp wdt:P625 ?coord. }
+      OPTIONAL { ?hp wdt:P18 ?image. }
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
   `;
@@ -260,6 +266,7 @@ async function fetchHighestPointsByCountry(): Promise<POIData[]> {
       const iso2 = result.iso2?.value;
       const name = result.hpLabel?.value;
       const coord = result.coord?.value;
+      const image = result.image?.value;
       
       if (!iso2 || !name || iso2.length !== 2) continue;
       
@@ -272,6 +279,7 @@ async function fetchHighestPointsByCountry(): Promise<POIData[]> {
         lat,
         lon,
         description: `Highest point`,
+        image_url: image,
         extra: '',
       });
     }
@@ -285,13 +293,14 @@ async function fetchHighestPointsByCountry(): Promise<POIData[]> {
 
 async function fetchTopForestsOrParksByCountry(): Promise<POIData[]> {
   const query = `
-    SELECT ?country ?iso2 ?countryLabel ?item ?itemLabel ?coord ?sitelinks WHERE {
+    SELECT ?country ?iso2 ?countryLabel ?item ?itemLabel ?coord ?sitelinks ?image WHERE {
       ?country wdt:P31 wd:Q6256.
       OPTIONAL { ?country wdt:P297 ?iso2. }
       ?item wdt:P17 ?country.
       ?item wdt:P31/wdt:P279* ?class .
       VALUES ?class { wd:Q4421 wd:Q46169 }
       OPTIONAL { ?item wdt:P625 ?coord. }
+      OPTIONAL { ?item wdt:P18 ?image. }
       ?item wikibase:sitelinks ?sitelinks.
       SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
     }
@@ -309,6 +318,7 @@ async function fetchTopForestsOrParksByCountry(): Promise<POIData[]> {
       const name = result.itemLabel?.value;
       const coord = result.coord?.value;
       const sitelinks = parseInt(result.sitelinks?.value || '0');
+      const image = result.image?.value;
       
       if (!iso2 || !name || iso2.length !== 2) continue;
       
@@ -322,6 +332,7 @@ async function fetchTopForestsOrParksByCountry(): Promise<POIData[]> {
         lat,
         lon,
         sitelinks,
+        image,
       });
     }
     
@@ -337,6 +348,7 @@ async function fetchTopForestsOrParksByCountry(): Promise<POIData[]> {
           lat: topPark.lat,
           lon: topPark.lon,
           description: `National park or forest`,
+          image_url: topPark.image,
           extra: `sitelinks:${topPark.sitelinks}`,
         });
       }

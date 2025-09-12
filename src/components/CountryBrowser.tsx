@@ -108,7 +108,7 @@ export default function CountryBrowser({ selectedContinent, onBack, onCountrySel
           </Button>
           <Button 
             variant="audio" 
-            size="icon"
+            size="icon-lg"
             onClick={() => speakText(`Exploring ${selectedContinent || "all"} countries`)}
           >
             <Volume2 />

@@ -268,7 +268,7 @@ export default function Quiz({ country, continent, onBack, onComplete }: QuizPro
           </Button>
           <Button 
             variant="audio" 
-            size="icon"
+            size="icon-lg"
             onClick={() => speakText(currentQ.question)}
           >
             <Volume2 />

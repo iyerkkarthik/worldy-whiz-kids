@@ -39,6 +39,7 @@ async function fetchCountries(): Promise<CountryData[]> {
   const timeoutId = setTimeout(() => controller.abort(), 120000);
   
   try {
+    console.log('Making request to REST Countries API...');
     const response = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,capitalInfo,latlng,population,area,flags,unMember,independent,status',
       { 
@@ -50,8 +51,8 @@ async function fetchCountries(): Promise<CountryData[]> {
   
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`REST Countries API error (${response.status}):`, errorText);
-      throw new Error(`REST Countries API failed: ${response.status} ${response.statusText}`);
+      console.error(`REST Countries API error - Status: ${response.status}, StatusText: ${response.statusText}, Body: ${errorText}`);
+      throw new Error(`REST Countries API failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
     const data = await response.json();
@@ -138,7 +139,7 @@ async function runSparqlQuery(query: string, retries: number = 3): Promise<any[]
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`SPARQL query error (${response.status}):`, errorText);
+        console.error(`SPARQL query error - Status: ${response.status}, StatusText: ${response.statusText}, Body: ${errorText}`);
         throw new Error(`SPARQL query failed: ${response.status} ${response.statusText}`);
       }
 
@@ -386,7 +387,6 @@ Deno.serve(async (req) => {
       .upsert(countries, { onConflict: 'iso2' });
 
     if (countriesError) {
-      console.error('Countries upsert error:', countriesError);
       throw new Error(`Failed to insert countries: ${countriesError.message}`);
     }
 
@@ -397,7 +397,6 @@ Deno.serve(async (req) => {
         .upsert(uniquePois, { onConflict: 'iso2,name' });
 
       if (poisError) {
-        console.error('POIs upsert error:', poisError);
         throw new Error(`Failed to insert POIs: ${poisError.message}`);
       }
     }
@@ -420,13 +419,12 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Edge function error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Error in populate-countries function:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage,
-        details: error instanceof Error ? error.stack : undefined,
+        error: error.message || 'Unknown error occurred',
+        details: error.toString(),
       }),
       {
         status: 500,

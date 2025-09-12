@@ -33,7 +33,7 @@ const DataManager = () => {
       
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Function call failed');
+        throw new Error(error.message || 'Function invocation failed');
       }
 
       if (data && !data.success) {

@@ -14,7 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      countries: {
+        Row: {
+          area_km2: number | null
+          capital: string | null
+          capital_lat: number | null
+          capital_lon: number | null
+          continent: string
+          country_name: string
+          created_at: string
+          currency: string | null
+          flag_image_url: string | null
+          id: string
+          iso2: string
+          population_millions: number | null
+          primary_language: string | null
+        }
+        Insert: {
+          area_km2?: number | null
+          capital?: string | null
+          capital_lat?: number | null
+          capital_lon?: number | null
+          continent: string
+          country_name: string
+          created_at?: string
+          currency?: string | null
+          flag_image_url?: string | null
+          id?: string
+          iso2: string
+          population_millions?: number | null
+          primary_language?: string | null
+        }
+        Update: {
+          area_km2?: number | null
+          capital?: string | null
+          capital_lat?: number | null
+          capital_lon?: number | null
+          continent?: string
+          country_name?: string
+          created_at?: string
+          currency?: string | null
+          flag_image_url?: string | null
+          id?: string
+          iso2?: string
+          population_millions?: number | null
+          primary_language?: string | null
+        }
+        Relationships: []
+      }
+      points_of_interest: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          iso2: string
+          lat: number | null
+          lon: number | null
+          name: string
+          poi_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          iso2: string
+          lat?: number | null
+          lon?: number | null
+          name: string
+          poi_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          iso2?: string
+          lat?: number | null
+          lon?: number | null
+          name?: string
+          poi_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_of_interest_iso2_fkey"
+            columns: ["iso2"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso2"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

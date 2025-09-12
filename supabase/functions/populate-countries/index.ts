@@ -49,65 +49,69 @@ async function fetchCountries(): Promise<CountryData[]> {
     
     clearTimeout(timeoutId);
   
-  if (!response.ok) {
-    throw new Error(`REST Countries API failed: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
-  console.log(`Fetched data for ${data.length} countries from REST Countries API`);
+    if (!response.ok) {
+      throw new Error(`REST Countries API failed: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`Fetched data for ${data.length} countries from REST Countries API`);
 
-  const countries: CountryData[] = [];
-  
-  for (const country of data) {
-    const name = country.name?.common;
-    const iso2 = country.cca2;
-    const iso3 = country.cca3;
-    const region = country.region;
-    const subregion = country.subregion;
-    const capital = country.capital?.[0] || '';
-    const capitalInfo = country.capitalInfo?.latlng || [];
-    const centerLatLng = country.latlng || [];
-    const population = country.population;
-    const area = country.area;
-    const flagUrl = country.flags?.png || country.flags?.svg || '';
-    const unMember = country.unMember;
+    const countries: CountryData[] = [];
+    
+    for (const country of data) {
+      const name = country.name?.common;
+      const iso2 = country.cca2;
+      const iso3 = country.cca3;
+      const region = country.region;
+      const subregion = country.subregion;
+      const capital = country.capital?.[0] || '';
+      const capitalInfo = country.capitalInfo?.latlng || [];
+      const centerLatLng = country.latlng || [];
+      const population = country.population;
+      const area = country.area;
+      const flagUrl = country.flags?.png || country.flags?.svg || '';
+      const unMember = country.unMember;
 
-    if (!name || !iso2) continue;
+      if (!name || !iso2) continue;
 
-    // Only include UN members and observers (Holy See and Palestine) = 195 total
-    const observers = ['VA', 'PS'];
-    if (!unMember && !observers.includes(iso2)) continue;
+      // Only include UN members and observers (Holy See and Palestine) = 195 total
+      const observers = ['VA', 'PS'];
+      if (!unMember && !observers.includes(iso2)) continue;
 
-    // Normalize continent names - split Americas into North/South
-    let continent = region;
-    if (region === 'Americas') {
-      if (subregion?.includes('South')) {
-        continent = 'South America';
-      } else if (subregion?.includes('North') || ['Caribbean', 'Central America'].includes(subregion)) {
-        continent = 'North America';
+      // Normalize continent names - split Americas into North/South
+      let continent = region;
+      if (region === 'Americas') {
+        if (subregion?.includes('South')) {
+          continent = 'South America';
+        } else if (subregion?.includes('North') || ['Caribbean', 'Central America'].includes(subregion)) {
+          continent = 'North America';
+        }
       }
+
+      countries.push({
+        country_name: name,
+        iso2,
+        iso3,
+        continent,
+        subregion,
+        capital,
+        capital_lat: capitalInfo[0] || null,
+        capital_lon: capitalInfo[1] || null,
+        center_lat: centerLatLng[0] || null,
+        center_lon: centerLatLng[1] || null,
+        population_millions: population ? population / 1000000 : null,
+        area_km2: area || null,
+        flag_image_url: flagUrl,
+        un_member: unMember || observers.includes(iso2),
+      });
     }
 
-    countries.push({
-      country_name: name,
-      iso2,
-      iso3,
-      continent,
-      subregion,
-      capital,
-      capital_lat: capitalInfo[0] || null,
-      capital_lon: capitalInfo[1] || null,
-      center_lat: centerLatLng[0] || null,
-      center_lon: centerLatLng[1] || null,
-      population_millions: population ? population / 1000000 : null,
-      area_km2: area || null,
-      flag_image_url: flagUrl,
-      un_member: unMember || observers.includes(iso2),
-    });
+    console.log(`Processed ${countries.length} countries (UN members + observers)`);
+    return countries.sort((a, b) => a.country_name.localeCompare(b.country_name));
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
   }
-
-  console.log(`Processed ${countries.length} countries (UN members + observers)`);
-  return countries.sort((a, b) => a.country_name.localeCompare(b.country_name));
 }
 
 async function runSparqlQuery(query: string, retries: number = 3): Promise<any[]> {

@@ -20,6 +20,8 @@ export type Database = {
           capital: string | null
           capital_lat: number | null
           capital_lon: number | null
+          center_lat: number | null
+          center_lon: number | null
           continent: string
           country_name: string
           created_at: string
@@ -27,14 +29,19 @@ export type Database = {
           flag_image_url: string | null
           id: string
           iso2: string
+          iso3: string | null
           population_millions: number | null
           primary_language: string | null
+          subregion: string | null
+          un_member: boolean | null
         }
         Insert: {
           area_km2?: number | null
           capital?: string | null
           capital_lat?: number | null
           capital_lon?: number | null
+          center_lat?: number | null
+          center_lon?: number | null
           continent: string
           country_name: string
           created_at?: string
@@ -42,14 +49,19 @@ export type Database = {
           flag_image_url?: string | null
           id?: string
           iso2: string
+          iso3?: string | null
           population_millions?: number | null
           primary_language?: string | null
+          subregion?: string | null
+          un_member?: boolean | null
         }
         Update: {
           area_km2?: number | null
           capital?: string | null
           capital_lat?: number | null
           capital_lon?: number | null
+          center_lat?: number | null
+          center_lon?: number | null
           continent?: string
           country_name?: string
           created_at?: string
@@ -57,8 +69,11 @@ export type Database = {
           flag_image_url?: string | null
           id?: string
           iso2?: string
+          iso3?: string | null
           population_millions?: number | null
           primary_language?: string | null
+          subregion?: string | null
+          un_member?: boolean | null
         }
         Relationships: []
       }
@@ -66,6 +81,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          extra: string | null
           id: string
           image_url: string | null
           iso2: string
@@ -77,6 +93,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          extra?: string | null
           id?: string
           image_url?: string | null
           iso2: string
@@ -88,6 +105,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          extra?: string | null
           id?: string
           image_url?: string | null
           iso2?: string

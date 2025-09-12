@@ -4,6 +4,7 @@ import ContinentPicker from "@/components/ContinentPicker";
 import CountryBrowser from "@/components/CountryBrowser";
 import CountryDetail from "@/components/CountryDetail";
 import Quiz from "@/components/Quiz";
+import DataManager from "@/components/DataManager";
 import heroEarth from "@/assets/hero-earth.jpg";
 
 interface Country {
@@ -72,10 +73,17 @@ const Index = () => {
 
       <main className="min-h-screen">
         {viewState.type === "home" && (
-          <ContinentPicker
-            onContinentSelect={handleContinentSelect}
-            onQuizStart={() => handleQuizStart()}
-          />
+          <>
+            <ContinentPicker
+              onContinentSelect={handleContinentSelect}
+              onQuizStart={() => handleQuizStart()}
+            />
+            
+            {/* Data Management Section - positioned at bottom */}
+            <div className="fixed bottom-4 right-4 z-50">
+              <DataManager />
+            </div>
+          </>
         )}
 
         {viewState.type === "browser" && (

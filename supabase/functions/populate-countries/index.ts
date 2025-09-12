@@ -42,7 +42,6 @@ async function fetchCountries(): Promise<CountryData[]> {
     const response = await fetch(
       'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,region,subregion,capital,capitalInfo,latlng,population,area,flags,unMember,independent,status',
       { 
-        headers: { 'User-Agent': 'NileKidsCountriesApp/1.0' },
         signal: controller.signal
       }
     );
@@ -50,7 +49,9 @@ async function fetchCountries(): Promise<CountryData[]> {
     clearTimeout(timeoutId);
   
     if (!response.ok) {
-      throw new Error(`REST Countries API failed: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`REST Countries API error (${response.status}):`, errorText);
+      throw new Error(`REST Countries API failed: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -128,7 +129,6 @@ async function runSparqlQuery(query: string, retries: number = 3): Promise<any[]
       const response = await fetch(`https://query.wikidata.org/sparql?${params}`, {
         method: 'GET',
         headers: {
-          'User-Agent': 'NileKidsCountriesApp/1.0',
           'Accept': 'application/json',
         },
         signal: controller.signal
@@ -137,7 +137,9 @@ async function runSparqlQuery(query: string, retries: number = 3): Promise<any[]
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`SPARQL query failed: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`SPARQL query error (${response.status}):`, errorText);
+        throw new Error(`SPARQL query failed: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -265,7 +267,7 @@ async function fetchHighestPointsByCountry(): Promise<POIData[]> {
       highestPoints.push({
         iso2,
         name,
-        poi_type: 'highest_point',
+        poi_type: 'mountain',
         lat,
         lon,
         description: `Highest point`,
@@ -330,7 +332,7 @@ async function fetchTopForestsOrParksByCountry(): Promise<POIData[]> {
         forestsParks.push({
           iso2: topPark.iso2,
           name: topPark.name,
-          poi_type: 'forest_or_park',
+          poi_type: 'forest',
           lat: topPark.lat,
           lon: topPark.lon,
           description: `National park or forest`,
@@ -384,6 +386,7 @@ Deno.serve(async (req) => {
       .upsert(countries, { onConflict: 'iso2' });
 
     if (countriesError) {
+      console.error('Countries upsert error:', countriesError);
       throw new Error(`Failed to insert countries: ${countriesError.message}`);
     }
 
@@ -394,6 +397,7 @@ Deno.serve(async (req) => {
         .upsert(uniquePois, { onConflict: 'iso2,name' });
 
       if (poisError) {
+        console.error('POIs upsert error:', poisError);
         throw new Error(`Failed to insert POIs: ${poisError.message}`);
       }
     }
@@ -416,11 +420,13 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Edge function error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined,
       }),
       {
         status: 500,

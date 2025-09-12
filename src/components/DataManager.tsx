@@ -32,21 +32,29 @@ const DataManager = () => {
       const { data, error } = await supabase.functions.invoke('populate-countries');
       
       if (error) {
-        throw error;
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Function call failed');
       }
 
+      if (data && !data.success) {
+        console.error('Function returned error:', data);
+        throw new Error(data.error || 'Function execution failed');
+      }
+
+      const message = data?.message || 'Countries and landmarks have been updated in the database.';
       toast({
         title: "Success! 🌍",
-        description: `Countries and landmarks have been updated in the database.`,
+        description: message,
       });
 
       // Refresh counts after successful population
       await fetchCounts();
     } catch (error) {
       console.error('Error populating data:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update the database. Please try again.';
       toast({
         title: "Error",
-        description: "Failed to update the database. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

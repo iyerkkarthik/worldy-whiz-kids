@@ -1,1 +1,4 @@
 project_id = "chelnvgnszkfbskdqvlj"
+
+[functions.populate-countries]
+verify_jwt = false

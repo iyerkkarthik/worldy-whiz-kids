@@ -6,7 +6,7 @@ import CountryDetail from "@/components/CountryDetail";
 import Quiz from "@/components/Quiz";
 import AdvancedSettings from "@/components/AdvancedSettings";
 import ContinentTour from "@/components/ContinentTour";
-import { DataRepopulator } from "@/components/DataRepopulator";
+
 import heroEarth from "@/assets/hero-earth.jpg";
 
 interface Country {
@@ -78,7 +78,7 @@ const Index = () => {
   return (
     <div>
       {/* TODO: Add Helmet for SEO when react-helmet-async is installed */}
-      <DataRepopulator />
+      
       <main className="min-h-screen">
         {viewState.type === "home" && (
           <ContinentPicker

@@ -5,6 +5,7 @@ import { Globe, MapPin, Award } from "lucide-react";
 interface ContinentPickerProps {
   onContinentSelect: (continent: string | null) => void;
   onQuizStart: () => void;
+  onTourStart: (continent: string) => void;
 }
 
 const continents = [
@@ -16,7 +17,7 @@ const continents = [
   { name: "Oceania", color: "bg-continent-oceania", icon: "🦘" },
 ];
 
-export default function ContinentPicker({ onContinentSelect, onQuizStart }: ContinentPickerProps) {
+export default function ContinentPicker({ onContinentSelect, onQuizStart, onTourStart }: ContinentPickerProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/20 p-4">
       <div className="max-w-6xl mx-auto">
@@ -70,10 +71,22 @@ export default function ContinentPicker({ onContinentSelect, onQuizStart }: Cont
                   <h3 className="text-kid-xl font-bold text-foreground mb-2">
                     {continent.name}
                   </h3>
-                  <Button variant="continent" size="sm" className="mt-2">
-                    <MapPin className="mr-1 h-4 w-4" />
-                    Explore
-                  </Button>
+                  <div className="flex gap-2 mt-2">
+                    <Button variant="continent" size="sm">
+                      <MapPin className="mr-1 h-4 w-4" />
+                      Explore
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTourStart(continent.name);
+                      }}
+                    >
+                      🎬 Tour
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

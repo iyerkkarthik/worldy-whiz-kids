@@ -5,6 +5,7 @@ import CountryBrowser from "@/components/CountryBrowser";
 import CountryDetail from "@/components/CountryDetail";
 import Quiz from "@/components/Quiz";
 import AdvancedSettings from "@/components/AdvancedSettings";
+import ContinentTour from "@/components/ContinentTour";
 import { DataRepopulator } from "@/components/DataRepopulator";
 import heroEarth from "@/assets/hero-earth.jpg";
 
@@ -27,7 +28,8 @@ type ViewState =
   | { type: "home" }
   | { type: "browser"; continent: string | null }
   | { type: "country"; country: Country }
-  | { type: "quiz"; country?: Country; continent?: string };
+  | { type: "quiz"; country?: Country; continent?: string }
+  | { type: "tour"; continent: string };
 
 const Index = () => {
   const [viewState, setViewState] = useState<ViewState>({ type: "home" });
@@ -42,6 +44,10 @@ const Index = () => {
 
   const handleQuizStart = (country?: Country, continent?: string) => {
     setViewState({ type: "quiz", country, continent });
+  };
+
+  const handleTourStart = (continent: string) => {
+    setViewState({ type: "tour", continent });
   };
 
   const handleBack = () => {
@@ -78,6 +84,7 @@ const Index = () => {
           <ContinentPicker
             onContinentSelect={handleContinentSelect}
             onQuizStart={() => handleQuizStart()}
+            onTourStart={handleTourStart}
           />
         )}
 
@@ -103,6 +110,13 @@ const Index = () => {
             continent={viewState.continent}
             onBack={handleBack}
             onComplete={handleQuizComplete}
+          />
+        )}
+
+        {viewState.type === "tour" && (
+          <ContinentTour
+            continent={viewState.continent}
+            onBack={handleBack}
           />
         )}
         

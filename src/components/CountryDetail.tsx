@@ -234,20 +234,36 @@ export default function CountryDetail({ country, onBack, onQuizStart }: CountryD
                   return (
                     <Card key={poi.id} className="text-center hover:shadow-magical transition-smooth">
                       <CardContent className="p-4">
-                        <div className="mb-4">
+                        <div className="mb-4 relative">
                           {poi.image_url ? (
-                            <img 
-                              src={poi.image_url} 
-                              alt={poi.name}
-                              className="w-20 h-20 rounded-lg object-cover mx-auto shadow-md"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                                if (nextElement) nextElement.style.display = 'block';
-                              }}
-                            />
+                            <div className="relative">
+                              <img 
+                                src={poi.image_url} 
+                                alt={poi.name}
+                                className="w-full h-32 rounded-lg object-cover mx-auto shadow-md transition-all duration-300 hover:shadow-lg"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  const parent = target.parentElement;
+                                  const fallback = parent?.nextElementSibling as HTMLElement;
+                                  if (parent && fallback) {
+                                    parent.style.display = 'none';
+                                    fallback.style.display = 'block';
+                                  }
+                                }}
+                                onLoad={(e) => {
+                                  const target = e.currentTarget;
+                                  const parent = target.parentElement;
+                                  const fallback = parent?.nextElementSibling as HTMLElement;
+                                  if (parent && fallback) {
+                                    parent.style.display = 'block';
+                                    fallback.style.display = 'none';
+                                  }
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg"></div>
+                            </div>
                           ) : null}
-                          <div className={`text-4xl ${poi.image_url ? 'hidden' : 'block'}`}>
+                          <div className={`text-6xl flex justify-center items-center h-32 ${poi.image_url ? 'hidden' : 'flex'}`}>
                             {poi.poi_type === 'landmark' && '🏛️'}
                             {poi.poi_type === 'mountain' && '⛰️'}
                             {poi.poi_type === 'forest' && '🌲'}

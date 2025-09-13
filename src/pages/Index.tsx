@@ -19,6 +19,7 @@ interface Country {
   primary_language: string;
   capital_lat: number;
   capital_lon: number;
+  flag_image_url?: string;
 }
 
 type ViewState = 

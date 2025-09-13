@@ -17,6 +17,7 @@ interface Country {
   primary_language: string;
   capital_lat: number;
   capital_lon: number;
+  flag_image_url?: string;
 }
 
 interface PointOfInterest {
@@ -131,7 +132,21 @@ export default function CountryDetail({ country, onBack, onQuizStart }: CountryD
         {/* Country Hero */}
         <Card className="mb-6 shadow-magical bg-gradient-hero text-white">
           <CardContent className="p-8 text-center">
-            <div className="text-8xl mb-4">🏳️</div>
+            <div className="mb-4">
+              {country.flag_image_url ? (
+                <img 
+                  src={country.flag_image_url} 
+                  alt={`Flag of ${country.country_name}`}
+                  className="w-32 h-20 object-cover rounded-lg mx-auto shadow-lg border-2 border-white/20"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (nextElement) nextElement.style.display = 'block';
+                  }}
+                />
+              ) : null}
+              <div className={`text-8xl ${country.flag_image_url ? 'hidden' : 'block'}`}>🏳️</div>
+            </div>
             <h1 className="text-kid-3xl font-bold mb-4">
               {country.country_name}
             </h1>

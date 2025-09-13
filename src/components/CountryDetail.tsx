@@ -103,6 +103,23 @@ export default function CountryDetail({ country, onBack, onQuizStart }: CountryD
     return num.toString();
   };
 
+  const convertImageUrl = (url: string | undefined) => {
+    if (!url) return url;
+    
+    // Check if it's a Wikimedia Commons wiki page URL
+    if (url.includes('commons.wikimedia.org/wiki/')) {
+      // Extract filename from wiki URL
+      const filename = url.split('/wiki/')[1];
+      if (filename) {
+        // Convert to direct image URL using Special:FilePath
+        return `https://commons.wikimedia.org/w/index.php?title=Special:FilePath&file=${encodeURIComponent(filename)}`;
+      }
+    }
+    
+    // Return original URL for other sources (OpenStreetMap, etc.)
+    return url;
+  };
+
   const funFacts = [
     `${country.country_name} is located in ${country.continent}!`,
     `The capital city ${country.capital} is where the government works.`,
@@ -238,7 +255,7 @@ export default function CountryDetail({ country, onBack, onQuizStart }: CountryD
                           {poi.image_url ? (
                             <div className="relative">
                               <img 
-                                src={poi.image_url} 
+                                src={convertImageUrl(poi.image_url)} 
                                 alt={poi.name}
                                 className="w-full h-32 rounded-lg object-cover mx-auto shadow-md transition-all duration-300 hover:shadow-lg"
                                 onError={(e) => {

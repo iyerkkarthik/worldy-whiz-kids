@@ -28,7 +28,7 @@ type ViewState =
   | { type: "home" }
   | { type: "browser"; continent: string | null }
   | { type: "country"; country: Country }
-  | { type: "quiz"; country?: Country; continent?: string }
+  | { type: "quiz"; country?: Country; continent?: string; isRandom?: boolean }
   | { type: "tour"; continent: string };
 
 const Index = () => {
@@ -44,6 +44,10 @@ const Index = () => {
 
   const handleQuizStart = (country?: Country, continent?: string) => {
     setViewState({ type: "quiz", country, continent });
+  };
+
+  const handleRandomQuizStart = () => {
+    setViewState({ type: "quiz", isRandom: true });
   };
 
   const handleTourStart = (continent: string) => {
@@ -84,6 +88,7 @@ const Index = () => {
           <ContinentPicker
             onContinentSelect={handleContinentSelect}
             onQuizStart={() => handleQuizStart()}
+            onRandomQuizStart={handleRandomQuizStart}
             onTourStart={handleTourStart}
           />
         )}
@@ -108,6 +113,7 @@ const Index = () => {
           <Quiz
             country={viewState.country}
             continent={viewState.continent}
+            isRandom={viewState.isRandom}
             onBack={handleBack}
             onComplete={handleQuizComplete}
           />

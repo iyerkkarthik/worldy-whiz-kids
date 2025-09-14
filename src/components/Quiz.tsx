@@ -2,42 +2,19 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Volume2, Trophy, Star } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Country {
-  id: string;
-  country_name: string;
-  iso2: string;
-  continent: string;
-  capital: string;
-  population_millions: number;
-  area_km2: number;
-  currency: string;
-  primary_language: string;
-}
-
-interface PointOfInterest {
-  name: string;
-  poi_type: string;
-  description: string;
-}
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Volume2, Trophy, Star, Shuffle, Brain } from "lucide-react";
+import { QuizGenerator, Question, Country } from "@/utils/QuizGenerator";
 
 interface QuizProps {
   country?: Country;
   continent?: string;
+  isRandom?: boolean;
   onBack: () => void;
   onComplete: (score: number, total: number) => void;
 }
 
-interface Question {
-  question: string;
-  options: string[];
-  correct: number;
-  explanation: string;
-}
-
-export default function Quiz({ country, continent, onBack, onComplete }: QuizProps) {
+export default function Quiz({ country, continent, isRandom, onBack, onComplete }: QuizProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
@@ -46,111 +23,29 @@ export default function Quiz({ country, continent, onBack, onComplete }: QuizPro
   const [showFinalResult, setShowFinalResult] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [confetti, setConfetti] = useState(false);
+  const [quizType, setQuizType] = useState<string>("");
 
   useEffect(() => {
     generateQuestions();
-  }, [country, continent]);
+  }, [country, continent, isRandom]);
 
   const generateQuestions = async () => {
     setIsLoading(true);
     try {
       let generatedQuestions: Question[] = [];
 
-      if (country) {
-        // Get POIs for this country
-        const { data: pois } = await supabase
-          .from("points_of_interest")
-          .select("*")
-          .eq("iso2", country.iso2);
-
-        // Generate country-specific questions
-        generatedQuestions = [
-          {
-            question: `What is the capital of ${country.country_name}?`,
-            options: [country.capital, "New York", "London", "Tokyo"].slice(0, 4),
-            correct: 0,
-            explanation: `${country.capital} is the capital city where the government of ${country.country_name} works!`
-          },
-          {
-            question: `Which continent is ${country.country_name} in?`,
-            options: [country.continent, "Antarctica", "Mars", "The Moon"].slice(0, 4),
-            correct: 0,
-            explanation: `${country.country_name} is located in ${country.continent}!`
-          }
-        ];
-
-        if (country.primary_language) {
-          generatedQuestions.push({
-            question: `What language do most people speak in ${country.country_name}?`,
-            options: [country.primary_language, "Alien", "Robot", "Animal"].slice(0, 4),
-            correct: 0,
-            explanation: `Most people in ${country.country_name} speak ${country.primary_language}!`
-          });
-        }
-
-        if (pois && pois.length > 0) {
-          const landmark = pois.find(poi => poi.poi_type === 'landmark');
-          if (landmark) {
-            generatedQuestions.push({
-              question: `What famous place can you visit in ${country.country_name}?`,
-              options: [landmark.name, "Candy Castle", "Dragon Cave", "Robot Factory"].slice(0, 4),
-              correct: 0,
-              explanation: `${landmark.name} is a famous landmark in ${country.country_name}! ${landmark.description}`
-            });
-          }
-        }
-
+      if (isRandom) {
+        setQuizType("Random World Quiz");
+        generatedQuestions = await QuizGenerator.generateRandomQuiz(5);
+      } else if (country) {
+        setQuizType(`${country.country_name} Quiz`);
+        generatedQuestions = await QuizGenerator.generateCountryQuestions(country, 5);
       } else if (continent) {
-        // Generate continent-specific questions
-        const { data: countries } = await supabase
-          .from("countries")
-          .select("*")
-          .eq("continent", continent)
-          .limit(10);
-
-        if (countries && countries.length > 0) {
-          const randomCountry = countries[Math.floor(Math.random() * countries.length)];
-          const otherCountries = countries.filter(c => c.id !== randomCountry.id).slice(0, 3);
-          
-          generatedQuestions = [
-            {
-              question: `Which of these countries is in ${continent}?`,
-              options: [
-                randomCountry.country_name,
-                ...otherCountries.map(c => c.country_name)
-              ].slice(0, 4),
-              correct: 0,
-              explanation: `${randomCountry.country_name} is indeed located in ${continent}!`
-            },
-            {
-              question: `What is the capital of ${randomCountry.country_name}?`,
-              options: [
-                randomCountry.capital,
-                ...otherCountries.map(c => c.capital)
-              ].slice(0, 4),
-              correct: 0,
-              explanation: `${randomCountry.capital} is the capital of ${randomCountry.country_name}!`
-            }
-          ];
-        }
+        setQuizType(`${continent} Quiz`);
+        generatedQuestions = await QuizGenerator.generateContinentQuestions(continent, 5);
       }
 
-      // Shuffle options for each question (except the correct answer position)
-      generatedQuestions.forEach(q => {
-        const correctAnswer = q.options[q.correct];
-        const shuffledOptions = [...q.options];
-        
-        // Simple shuffle
-        for (let i = shuffledOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-        }
-        
-        q.options = shuffledOptions;
-        q.correct = shuffledOptions.indexOf(correctAnswer);
-      });
-
-      setQuestions(generatedQuestions.slice(0, 3)); // Limit to 3 questions for kids
+      setQuestions(generatedQuestions);
     } catch (error) {
       console.error("Error generating questions:", error);
     } finally {
@@ -201,8 +96,11 @@ export default function Quiz({ country, continent, onBack, onComplete }: QuizPro
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/20 flex items-center justify-center">
         <Card className="shadow-magical">
           <CardContent className="p-8 text-center">
-            <div className="text-6xl mb-4 animate-bounce">🎯</div>
-            <h2 className="text-kid-2xl font-bold">Preparing Your Quiz...</h2>
+            <div className="text-6xl mb-4 animate-bounce">
+              {isRandom ? '🌎' : country ? '🏛️' : '🌍'}
+            </div>
+            <h2 className="text-kid-2xl font-bold">Preparing Your {quizType}...</h2>
+            <p className="text-muted-foreground mt-2">Generating amazing questions just for you!</p>
           </CardContent>
         </Card>
       </div>
@@ -284,13 +182,18 @@ export default function Quiz({ country, continent, onBack, onComplete }: QuizPro
             <ArrowLeft className="mr-2" />
             Exit Quiz
           </Button>
-          <Button 
-            variant="audio" 
-            size="icon-lg"
-            onClick={() => speakText(currentQ.question)}
-          >
-            <Volume2 />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {quizType}
+            </Badge>
+            <Button 
+              variant="audio" 
+              size="icon-lg"
+              onClick={() => speakText(currentQ.question)}
+            >
+              <Volume2 />
+            </Button>
+          </div>
         </div>
 
         {/* Progress */}
@@ -311,6 +214,17 @@ export default function Quiz({ country, continent, onBack, onComplete }: QuizPro
         {/* Question */}
         <Card className="mb-6 shadow-magical">
           <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <Badge variant="outline" className="text-xs">
+                {currentQ.category}
+              </Badge>
+              <Badge 
+                variant={currentQ.difficulty === 'easy' ? 'default' : currentQ.difficulty === 'medium' ? 'secondary' : 'destructive'}
+                className="text-xs"
+              >
+                {currentQ.difficulty}
+              </Badge>
+            </div>
             <CardTitle className="text-kid-2xl font-bold text-center">
               {currentQ.question}
             </CardTitle>

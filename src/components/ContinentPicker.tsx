@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Globe, MapPin, Award } from "lucide-react";
+import { Globe, MapPin, Award, Shuffle, Brain } from "lucide-react";
 
 interface ContinentPickerProps {
   onContinentSelect: (continent: string | null) => void;
   onQuizStart: () => void;
+  onRandomQuizStart: () => void;
   onTourStart: (continent: string) => void;
 }
 
@@ -17,7 +18,7 @@ const continents = [
   { name: "Oceania", color: "bg-continent-oceania", icon: "🦘" },
 ];
 
-export default function ContinentPicker({ onContinentSelect, onQuizStart, onTourStart }: ContinentPickerProps) {
+export default function ContinentPicker({ onContinentSelect, onQuizStart, onRandomQuizStart, onTourStart }: ContinentPickerProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/20 p-4">
       <div className="max-w-6xl mx-auto">
@@ -47,7 +48,16 @@ export default function ContinentPicker({ onContinentSelect, onQuizStart, onTour
               className="min-w-48"
             >
               <Award className="mr-2" />
-              Start Quiz Adventure
+              Continent Quiz
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={onRandomQuizStart}
+              className="min-w-48 border-2 border-primary text-primary hover:bg-primary hover:text-white"
+            >
+              <Shuffle className="mr-2" />
+              Random World Quiz
             </Button>
           </div>
         </div>

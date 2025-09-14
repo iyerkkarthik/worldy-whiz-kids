@@ -255,6 +255,24 @@ export default function Quiz({ country, continent, onBack, onComplete }: QuizPro
     );
   }
 
+  // Safety check: ensure we have questions and valid current question
+  if (!questions.length || !questions[currentQuestion]) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/20 flex items-center justify-center">
+        <Card className="shadow-magical">
+          <CardContent className="p-8 text-center">
+            <div className="text-6xl mb-4">❓</div>
+            <h2 className="text-kid-2xl font-bold">No questions available</h2>
+            <Button variant="outline" onClick={onBack} className="mt-4">
+              <ArrowLeft className="mr-2" />
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const currentQ = questions[currentQuestion];
 
   return (

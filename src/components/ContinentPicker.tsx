@@ -33,13 +33,6 @@ export default function ContinentPicker({ onContinentSelect, onContinentQuizStar
           </p>
           
           <div className="flex justify-center mb-8">
-            <ContinentQuizSelector 
-              onContinentQuizStart={onContinentQuizStart}
-              onRandomQuizStart={onRandomQuizStart}
-            />
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Button
               variant="hero"
               size="lg"
@@ -48,15 +41,6 @@ export default function ContinentPicker({ onContinentSelect, onContinentQuizStar
             >
               <Globe className="mr-2" />
               Explore All Countries
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={onRandomQuizStart}
-              className="min-w-48 border-2 border-primary text-primary hover:bg-primary hover:text-white"
-            >
-              <Shuffle className="mr-2" />
-              Random World Quiz
             </Button>
           </div>
         </div>
@@ -99,6 +83,19 @@ export default function ContinentPicker({ onContinentSelect, onContinentQuizStar
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+
+        {/* Quiz Section */}
+        <div className="mb-8">
+          <h2 className="text-kid-2xl font-bold text-center mb-6 text-foreground">
+            Test Your Knowledge! 🧠
+          </h2>
+          <div className="flex justify-center">
+            <ContinentQuizSelector 
+              onContinentQuizStart={onContinentQuizStart}
+              onRandomQuizStart={onRandomQuizStart}
+            />
           </div>
         </div>
 

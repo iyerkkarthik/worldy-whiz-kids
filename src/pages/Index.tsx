@@ -46,6 +46,8 @@ const Index = () => {
     setViewState({ type: "quiz", country, continent });
   };
 
+  // Handle continent quiz start
+
   const handleContinentQuizStart = (continent: string) => {
     setViewState({ type: "quiz", continent, isRandom: false });
   };

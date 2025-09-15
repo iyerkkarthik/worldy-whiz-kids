@@ -46,6 +46,10 @@ const Index = () => {
     setViewState({ type: "quiz", country, continent });
   };
 
+  const handleContinentQuizStart = (continent: string) => {
+    setViewState({ type: "quiz", continent, isRandom: false });
+  };
+
   const handleRandomQuizStart = () => {
     setViewState({ type: "quiz", isRandom: true });
   };
@@ -87,7 +91,7 @@ const Index = () => {
         {viewState.type === "home" && (
           <ContinentPicker
             onContinentSelect={handleContinentSelect}
-            onQuizStart={() => handleQuizStart()}
+            onContinentQuizStart={handleContinentQuizStart}
             onRandomQuizStart={handleRandomQuizStart}
             onTourStart={handleTourStart}
           />

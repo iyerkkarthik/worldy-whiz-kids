@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Globe, MapPin, Award, Shuffle, Brain } from "lucide-react";
+import { Globe, MapPin, Shuffle } from "lucide-react";
+import ContinentQuizSelector from "./ContinentQuizSelector";
 
 interface ContinentPickerProps {
   onContinentSelect: (continent: string | null) => void;
-  onQuizStart: () => void;
+  onContinentQuizStart: (continent: string) => void;
   onRandomQuizStart: () => void;
   onTourStart: (continent: string) => void;
 }
@@ -18,7 +19,7 @@ const continents = [
   { name: "Oceania", color: "bg-continent-oceania", icon: "🦘" },
 ];
 
-export default function ContinentPicker({ onContinentSelect, onQuizStart, onRandomQuizStart, onTourStart }: ContinentPickerProps) {
+export default function ContinentPicker({ onContinentSelect, onContinentQuizStart, onRandomQuizStart, onTourStart }: ContinentPickerProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/20 p-4">
       <div className="max-w-6xl mx-auto">
@@ -31,6 +32,13 @@ export default function ContinentPicker({ onContinentSelect, onQuizStart, onRand
             Let's explore amazing countries and learn fun facts!
           </p>
           
+          <div className="flex justify-center mb-8">
+            <ContinentQuizSelector 
+              onContinentQuizStart={onContinentQuizStart}
+              onRandomQuizStart={onRandomQuizStart}
+            />
+          </div>
+          
           <div className="flex flex-wrap justify-center gap-4 mb-8">
             <Button
               variant="hero"
@@ -40,15 +48,6 @@ export default function ContinentPicker({ onContinentSelect, onQuizStart, onRand
             >
               <Globe className="mr-2" />
               Explore All Countries
-            </Button>
-            <Button
-              variant="quiz"
-              size="lg"
-              onClick={onQuizStart}
-              className="min-w-48"
-            >
-              <Award className="mr-2" />
-              Continent Quiz
             </Button>
             <Button
               variant="outline"

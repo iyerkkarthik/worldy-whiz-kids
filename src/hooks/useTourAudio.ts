@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseTourAudioOptions {
   isMuted: boolean;
@@ -8,18 +9,58 @@ interface UseTourAudioOptions {
 
 export const useTourAudio = ({ isMuted, speed = 1, volume = 1 }: UseTourAudioOptions) => {
   const [isNarrating, setIsNarrating] = useState(false);
-  const [isSpeechSupported, setIsSpeechSupported] = useState(false);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [isSpeechSupported, setIsSpeechSupported] = useState(true); // ElevenLabs is always supported
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioQueueRef = useRef<Array<{ text: string; onComplete?: () => void }>>([]);
   const isProcessingRef = useRef(false);
+  const audioCacheRef = useRef<Map<string, string>>(new Map());
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      synthRef.current = window.speechSynthesis;
-      setIsSpeechSupported(true);
+  const generateAudio = async (text: string): Promise<string> => {
+    // Check cache first
+    const cacheKey = `${text}_${speed}`;
+    const cachedAudio = audioCacheRef.current.get(cacheKey);
+    if (cachedAudio) {
+      return cachedAudio;
     }
-  }, []);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: {
+          text,
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8,
+            style: 0.0,
+            use_speaker_boost: true
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Error generating audio:', error);
+        throw new Error(error.message || 'Failed to generate audio');
+      }
+
+      if (!data?.audioContent) {
+        throw new Error('No audio content received');
+      }
+
+      // Create audio URL from base64
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
+        { type: 'audio/mpeg' }
+      );
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Cache the audio URL
+      audioCacheRef.current.set(cacheKey, audioUrl);
+
+      return audioUrl;
+    } catch (error) {
+      console.error('Error generating audio with ElevenLabs:', error);
+      throw error;
+    }
+  };
 
   const processQueue = useCallback(async () => {
     if (isProcessingRef.current || audioQueueRef.current.length === 0) {
@@ -32,55 +73,59 @@ export const useTourAudio = ({ isMuted, speed = 1, volume = 1 }: UseTourAudioOpt
     while (audioQueueRef.current.length > 0) {
       const { text, onComplete } = audioQueueRef.current.shift()!;
 
-      if (isMuted || !synthRef.current) {
+      if (isMuted) {
         // If muted, just call onComplete immediately
         onComplete?.();
         continue;
       }
 
-      await new Promise<void>((resolve) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        currentUtteranceRef.current = utterance;
+      try {
+        await new Promise<void>(async (resolve, reject) => {
+          try {
+            // Generate audio using ElevenLabs
+            const audioUrl = await generateAudio(text);
+            
+            // Create and configure audio element
+            const audio = new Audio(audioUrl);
+            currentAudioRef.current = audio;
+            
+            // Configure audio settings
+            audio.volume = volume;
+            audio.playbackRate = speed;
+            
+            audio.onended = () => {
+              currentAudioRef.current = null;
+              onComplete?.();
+              resolve();
+            };
 
-        // Configure voice settings
-        utterance.rate = speed;
-        utterance.volume = volume;
-        utterance.pitch = 1;
+            audio.onerror = (error) => {
+              console.error('Audio playback error:', error);
+              currentAudioRef.current = null;
+              onComplete?.();
+              resolve();
+            };
 
-        // Try to use a pleasant voice
-        const voices = synthRef.current!.getVoices();
-        const preferredVoice = voices.find(voice => 
-          voice.name.includes('Google') || 
-          voice.name.includes('Microsoft') ||
-          voice.default
-        );
-        if (preferredVoice) {
-          utterance.voice = preferredVoice;
-        }
+            // Start playback
+            await audio.play();
+          } catch (error) {
+            console.error('Error processing audio:', error);
+            onComplete?.();
+            resolve();
+          }
+        });
 
-        utterance.onend = () => {
-          currentUtteranceRef.current = null;
-          onComplete?.();
-          resolve();
-        };
-
-        utterance.onerror = (error) => {
-          console.error('Speech synthesis error:', error);
-          currentUtteranceRef.current = null;
-          onComplete?.();
-          resolve();
-        };
-
-        synthRef.current!.speak(utterance);
-      });
-
-      // Small delay between narrations for natural flow
-      await new Promise(resolve => setTimeout(resolve, 500));
+        // Small delay between narrations for natural flow
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error('Error in audio queue processing:', error);
+        // Continue with next item in queue
+      }
     }
 
     setIsNarrating(false);
     isProcessingRef.current = false;
-  }, [isMuted, speed, volume]);
+  }, [isMuted, speed, volume, generateAudio]);
 
   const queueNarration = useCallback((text: string, onComplete?: () => void) => {
     audioQueueRef.current.push({ text, onComplete });
@@ -90,8 +135,9 @@ export const useTourAudio = ({ isMuted, speed = 1, volume = 1 }: UseTourAudioOpt
   const startNarration = useCallback((text: string, onComplete?: () => void) => {
     // Clear existing queue and start fresh
     audioQueueRef.current = [];
-    if (currentUtteranceRef.current && synthRef.current) {
-      synthRef.current.cancel();
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
     }
     queueNarration(text, onComplete);
   }, [queueNarration]);
@@ -101,21 +147,21 @@ export const useTourAudio = ({ isMuted, speed = 1, volume = 1 }: UseTourAudioOpt
     isProcessingRef.current = false;
     setIsNarrating(false);
     
-    if (currentUtteranceRef.current && synthRef.current) {
-      synthRef.current.cancel();
-      currentUtteranceRef.current = null;
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
     }
   }, []);
 
   const pauseNarration = useCallback(() => {
-    if (synthRef.current && synthRef.current.speaking) {
-      synthRef.current.pause();
+    if (currentAudioRef.current && !currentAudioRef.current.paused) {
+      currentAudioRef.current.pause();
     }
   }, []);
 
   const resumeNarration = useCallback(() => {
-    if (synthRef.current && synthRef.current.paused) {
-      synthRef.current.resume();
+    if (currentAudioRef.current && currentAudioRef.current.paused) {
+      currentAudioRef.current.play();
     }
   }, []);
 

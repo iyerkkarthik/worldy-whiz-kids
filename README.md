@@ -1,4 +1,4 @@
-#Overview
+# Overview
 The single-page app swaps between continent selection, country browsing, deep-dive detail pages, quizzes, and narrated tours by tracking a viewState that decides which feature component to render at any given time.
 
 A playful continent picker highlights each region, lets learners jump straight into tours, and surfaces quiz launchers tailored to individual continents or random challenges.

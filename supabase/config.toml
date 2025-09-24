@@ -2,6 +2,3 @@ project_id = "chelnvgnszkfbskdqvlj"
 
 [functions.populate-countries]
 verify_jwt = false
-
-[functions.text-to-speech]
-verify_jwt = false
